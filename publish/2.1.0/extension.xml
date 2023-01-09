@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<extension type="Event" name="WindowsEventMonitor" enabled="false" xmlns="AppDynamics.DotNetAgent.Extension">
+  <execution mode="Continuous" type="dll" path="AppD.NETExtensions.WindowsEventMonitor"></execution>
+  <description>This extension watch for any new windows event logged for provided event source definition and post them to controller as custom event.</description>
+  <!--Controller Info is required for publishing the events to controller. 
+     Default Account name is customer1 for single tenant controller. other controller details will be picked from
+	 config.xml configured for dotnet agent. -->
+  <controller-info user="user1" account="Customer1" password="welcome" />
+  <controller-event-properties>
+    <!--These properties are optional and send to controller as given here in property name value pair. 
+    It can be used to identify the extension machine that sends it.
+    Imp: Node, BT and tier has to match exactly otherwise it will generate an error.
+    Tier name is mandatory if node or Bt name is given
+    <add key="bt" value="/MyBT.aspx"></add>
+    <add key="node" value="MyNodeName"></add>
+    <add key="tier" value="MyTier"></add>-->
+  </controller-event-properties>
+  <parameters>
+    <!--EventLogPath is required and only one event log path-->
+    <add key="EventLogPath" value="Application"></add>
+
+    <!--EventLogEntryType default as empty and will capture all event soures. Multiple values can be provided as comma separated  -->
+    <add key="EventSources" value=""></add>
+
+    <!--EventLogEntryType default as empty and will capture all event id. Multiple values can be provided as comma separated  -->
+    <add key="EventID" value=""></add>
+
+    <!--EventLogEntryType default as empty and will capture all level of logs. Multiple values can be provided from Error,Warning,Information,SuccessAudit,FailureAudit  -->
+    <add key="EventLogEntryType" value=""></add>
+    
+    <!--EventLogMessageContains default as empty , multiple values, comma separated  -->
+    <add key="EventLogMessageContains" value=""></add>
+  </parameters>
+</extension>
