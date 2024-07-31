@@ -4,6 +4,7 @@ using AppDynamics.Extension.SDK.Model.Enumeration;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Eventing.Reader;
+using System.Linq;
 
 namespace AppD.NETExtensions
 {
@@ -54,7 +55,7 @@ namespace AppD.NETExtensions
             SetPropertyFromConfig("EventID", "", out _allowedEventIds);
 
             //set error level
-            SetPropertyFromConfig("EventLogEntryType", "", out _allowedEventType);
+            SetPropertyFromConfig("EventLogEntryType", "", out _allowedEventType);            
         }
 
         public override void Stop()
@@ -78,8 +79,8 @@ namespace AppD.NETExtensions
 
             _eventLogWatcher.Enabled = true;
 
-            if (logger.IsDebugEnabled)
-                logger.Debug(String.Format("Created Event Log watch for {0}", _logName));
+            logger.Info($"Matching on EventSources={string.Join(",", _allowedSources)} and EventLogMessageContains={string.Join(",", _filters)} and EventId={string.Join(",", _allowedEventIds)} and EventLogEntryType={string.Join(",", _allowedEventType)}");
+            logger.Info($"Created Event Log watch for {_logName}");
 
             return true;
         }
@@ -169,19 +170,19 @@ namespace AppD.NETExtensions
 
         private bool IsValidEvent(EventRecord entry)
         {
+            string message = string.Empty;
             bool isValid = false;
-
             bool validType = ContainsItemInList(entry.LevelDisplayName.ToLowerInvariant(), _allowedEventType);
-
             bool validSource = ContainsItemInList(entry.ProviderName.ToLowerInvariant(), _allowedSources);
-
             bool validEventId = ContainsItemInList(entry.Id.ToString(), _allowedEventIds);
 
             if (validType && validSource && validEventId)
             {
-                if (entry.Properties[0] != null && entry.Properties[0].Value != null)
+                if (_filters.All(x => x == string.Empty))
+                    isValid = true;
+                else if (entry.Properties[0]?.Value != null)
                 {
-                    string message = entry.Properties[0].Value.ToString();
+                    message = entry.Properties[0].Value.ToString();
 
                     foreach (string filter in _filters)
                     {
@@ -195,6 +196,9 @@ namespace AppD.NETExtensions
                 }
             }
 
+            if (!isValid && logger.IsTraceEnabled)
+                logger.Trace($"Failed to match-- validType:{validType}|validSource:{validSource}|validEventId:{validEventId}|messageFilters:{_filters.Any(message.Contains)}");
+            
             return isValid;
         }
 
